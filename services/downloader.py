@@ -24,25 +24,32 @@ def download_media(url: str, mode: str, quality: str, progress: dict):
             progress["percent"] = 99.0
             progress["status"] = "processing"
 
+    options = {
+        "outtmpl": os.path.join(workdir, "%(title).70s-%(id)s.%(ext)s"),
+        "noplaylist": True,
+        "quiet": True,
+        "no_warnings": True,
+        "socket_timeout": 30,
+        "retries": 2,
+        "progress_hooks": [hook],
+        "extractor_args": {"youtube": {"player_client": ["web"]}}
+    }
+
+    if os.path.exists("cookies.txt"):
+        options["cookiefile"] = "cookies.txt"
+
     if mode == "audio":
-        options = {
+        options.update({
             "format": "bestaudio/best",
-            "outtmpl": os.path.join(workdir, "%(title).70s-%(id)s.%(ext)s"),
-            "noplaylist": True,
-            "quiet": True,
-            "no_warnings": True,
-            "socket_timeout": 30,
-            "retries": 2,
-            "progress_hooks": [hook],
             "postprocessors": [{
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "mp3",
                 "preferredquality": "192",
             }],
-        }
+        })
     else:
         height = int(quality)
-        options = {
+        options.update({
             "format": (
                 f"best[height<={height}][ext=mp4]/"
                 f"best[height<={height}]/"
@@ -50,14 +57,7 @@ def download_media(url: str, mode: str, quality: str, progress: dict):
                 f"best"
             ),
             "merge_output_format": "mp4",
-            "outtmpl": os.path.join(workdir, "%(title).70s-%(id)s.%(ext)s"),
-            "noplaylist": True,
-            "quiet": True,
-            "no_warnings": True,
-            "socket_timeout": 30,
-            "retries": 2,
-            "progress_hooks": [hook],
-        }
+        })
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
