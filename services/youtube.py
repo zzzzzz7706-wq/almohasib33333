@@ -14,15 +14,21 @@ def is_youtube_url(url: str) -> bool:
     except Exception:
         return False
 
+import os
+
 def _base_options() -> dict:
-    return {
+    options = {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
         "socket_timeout": 30,
         "retries": 2,
         "extractor_retries": 2,
+        "extractor_args": {"youtube": {"player_client": ["web"]}}
     }
+    if os.path.exists("cookies.txt"):
+        options["cookiefile"] = "cookies.txt"
+    return options
 
 def get_video_info(url: str) -> dict:
     if not is_youtube_url(url):
